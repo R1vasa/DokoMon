@@ -98,13 +98,14 @@ class Battle {
                 int itemChoice = sc.nextInt();
                 sc.nextLine(); // Consume newline
                 if (itemChoice == 1) {
+                if (playerPokemon.getHp() == playerPokemon.getMaxHp()) {
+                    System.out.println(playerPokemon.getName() + "'s HP is already full. No item used.");
+                } else {
                     playerPokemon.heal(30);
                     System.out.println(playerPokemon.getName() + " healed 30 HP!");
-                } else if (itemChoice == 2) {
-                    playerPokemon.levelUp(10);
-                    System.out.println(playerPokemon.getName() + " leveled up by 10!");
+                    }
                 }
-                 return new Pokemon[] {playerPokemon, computerPokemon};// Skip computer's action
+                return new Pokemon[] {playerPokemon, computerPokemon};// Skip computer's action
 
             case 5: // Change Pokémon
                 playerPokemon = player.choosePokemon(sc);
@@ -113,7 +114,7 @@ class Battle {
                     playerPokemon = player.choosePokemon(sc);
                 }
                 System.out.println(playerPokemon.getName() + " is now in battle!");
-               return new Pokemon[] {playerPokemon, computerPokemon};
+            return new Pokemon[] {playerPokemon, computerPokemon};
             default:
                 System.out.println("Invalid action.");
                 return new Pokemon[] {playerPokemon, computerPokemon};
@@ -136,11 +137,14 @@ class Battle {
 
             case 4: // Use Item
                 System.out.println(computerPokemon.getName() + " uses an item!");
-                computerPokemon.heal(30);
-                System.out.println(computerPokemon.getName() + " healed 30 HP!");
+                if (computerPokemon.getHp() == computerPokemon.getMaxHp()) {
+                    System.out.println(computerPokemon.getName() + "'s HP is already full. No item used.");
+                } else {
+                    computerPokemon.heal(30);
+                }
                 return new Pokemon[] {playerPokemon, computerPokemon}; // Skip player's action
             case 5: // Change Pokémon
-                 Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
+                Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
                 if (newPokemon != computerPokemon) {
                 computerPokemon = newPokemon;
                 System.out.println("Trainer Rivasa sends out " + computerPokemon.getName() + "!");
@@ -171,7 +175,7 @@ class Battle {
             System.out.println(computerPokemon.getName() + " dealt " + computerDamage + " damage to " + playerPokemon.getName() + "!");
             printEffectiveness(effectiveness);
         }
-         return new Pokemon[] {playerPokemon, computerPokemon};
+        return new Pokemon[] {playerPokemon, computerPokemon};
     }
 
     private static void printEffectiveness(double effectiveness) {
