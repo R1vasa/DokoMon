@@ -12,6 +12,10 @@ class Battle {
         playerItemUsage.put("Potion", 0);
         playerItemUsage.put("Elixir", 0);
 
+        Map<String, Integer> computerItemUsage = new HashMap<>();
+        computerItemUsage.put("Potion", 0);
+        computerItemUsage.put("Elixir", 0);
+
         Pokemon computerPokemon = computer.chooseRandomPokemon();
 
         while (player.hasAvailablePokemon() && computer.hasAvailablePokemon()) {
@@ -26,7 +30,7 @@ class Battle {
 
             System.out.println("\n-- " + playerPokemon.getName() + " VS " + computerPokemon.getName() + " --");
 
-            Pokemon[] updated = battleTurnPvE(player, playerPokemon, computer, computerPokemon, sc, playerItemUsage);
+            Pokemon[] updated = battleTurnPvE(player, playerPokemon, computer, computerPokemon, sc, playerItemUsage, computerItemUsage);
             playerPokemon = updated[0];
             computerPokemon = updated[1];
         }
@@ -45,7 +49,7 @@ class Battle {
         }
     }
 
-    private static Pokemon[] battleTurnPvE(Trainer player, Pokemon playerPokemon, Trainer computer, Pokemon computerPokemon, Scanner sc, Map<String, Integer> playerItemUsage) {
+    private static Pokemon[] battleTurnPvE(Trainer player, Pokemon playerPokemon, Trainer computer, Pokemon computerPokemon, Scanner sc, Map<String, Integer> playerItemUsage, Map<String, Integer> computerItemUsage) {
         while (!playerPokemon.isFainted() && !computerPokemon.isFainted()) {
             System.out.println("\nChoose action for " + playerPokemon.getName() + ":");
             System.out.println("1. Regular Attack");
@@ -62,7 +66,7 @@ class Battle {
             int computerAction = new Random().nextInt(5) + 1;
             System.out.println("Computer action chosen: " + computerAction);
 
-            Pokemon[] updatedPokemons = processActions(playerAction, playerPokemon, computerAction, computerPokemon, player, computer, sc, playerItemUsage);
+            Pokemon[] updatedPokemons = processActions(playerAction, playerPokemon, computerAction, computerPokemon, player, computer, sc, playerItemUsage, computerItemUsage);
             playerPokemon = updatedPokemons[0];
             computerPokemon = updatedPokemons[1];
 
@@ -71,7 +75,7 @@ class Battle {
         return new Pokemon[] {playerPokemon, computerPokemon};
     }
 
-    private static Pokemon[] processActions(int playerAction, Pokemon playerPokemon, int computerAction, Pokemon computerPokemon, Trainer player, Trainer computer, Scanner sc, Map<String, Integer> playerItemUsage) {
+    private static Pokemon[] processActions(int playerAction, Pokemon playerPokemon, int computerAction, Pokemon computerPokemon, Trainer player, Trainer computer, Scanner sc, Map<String, Integer> playerItemUsage, Map<String, Integer> computerItemUsage) {
         boolean playerGuarded = false;
         boolean computerGuarded = false;
 
@@ -135,9 +139,14 @@ class Battle {
                 computerGuarded = true;
                 break;
             case 4:
-                System.out.println(computerPokemon.getName() + " uses an item!");
-                computerPokemon.heal(30);
-                System.out.println(computerPokemon.getName() + " healed 30 HP!");
+                if (computerItemUsage.get("Potion") < 2) {
+                    System.out.println(computerPokemon.getName() + " uses a Potion!");
+                    computerPokemon.heal(30);
+                    computerItemUsage.put("Potion", computerItemUsage.get("Potion") + 1);
+                    System.out.println(computerPokemon.getName() + " healed 30 HP! (Used " + computerItemUsage.get("Potion") + "/2 Potions)");
+                } else {
+                    System.out.println("Trainer Rivasa has no more Potions left!");
+                }
                 return new Pokemon[] {playerPokemon, computerPokemon};
             case 5:
                 Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
