@@ -97,23 +97,16 @@ class Battle {
                 int itemChoice = sc.nextInt();
                 sc.nextLine();
                 if (itemChoice == 1) {
-                    if (playerItemUsage.get("Potion") >= 2) {
-                        System.out.println("You have no more Potions left!");
-                    } else {
-                        playerPokemon.heal(30);
-                        playerItemUsage.put("Potion", playerItemUsage.get("Potion") + 1);
-                        System.out.println(playerPokemon.getName() + " healed 30 HP! (Used " + playerItemUsage.get("Potion") + "/2 Potions)");
-                    }
-                } else if (itemChoice == 2) {
-                    if (playerItemUsage.get("Elixir") >= 2) {
-                        System.out.println("You have no more Elixirs left!");
-                    } else {
-                        playerPokemon.levelUp(10);
-                        playerItemUsage.put("Elixir", playerItemUsage.get("Elixir") + 1);
-                        System.out.println(playerPokemon.getName() + " leveled up by 10! (Used " + playerItemUsage.get("Elixir") + "/2 Elixirs)");
-                    }
+                if (playerPokemon.getHp() == playerPokemon.getMaxHp()) {
+                     System.out.println(playerPokemon.getName() + "'s HP is already full. No item used.");
+                } else if (playerItemUsage.get("Potion") >= 2) {
+                     System.out.println("You have no more Potions left!");
+                } else {
+                     playerPokemon.heal(30);
+                     playerItemUsage.put("Potion", playerItemUsage.get("Potion") + 1);
+                     System.out.println(playerPokemon.getName() + " healed 30 HP! (Used " + playerItemUsage.get("Potion") + "/2 Potions)");
                 }
-                return new Pokemon[] {playerPokemon, computerPokemon};
+                  return new Pokemon[] {playerPokemon, computerPokemon};
             case 5:
                 playerPokemon = player.choosePokemon(sc);
                 while (playerPokemon.isFainted()) {
@@ -138,8 +131,12 @@ class Battle {
                 System.out.println(computerPokemon.getName() + " is guarding!");
                 computerGuarded = true;
                 break;
-            case 4:
-                if (computerItemUsage.get("Potion") < 2) {
+            case 4: // Use Item
+                System.out.println(computerPokemon.getName() + " uses an item!");
+
+                if (computerPokemon.getHp() == computerPokemon.getMaxHp()) {
+                    System.out.println(computerPokemon.getName() + "'s HP is already full. No item used.");
+                } else if (computerItemUsage.get("Potion") < 2) {
                     System.out.println(computerPokemon.getName() + " uses a Potion!");
                     computerPokemon.heal(30);
                     computerItemUsage.put("Potion", computerItemUsage.get("Potion") + 1);
@@ -147,7 +144,8 @@ class Battle {
                 } else {
                     System.out.println("Trainer Rivasa has no more Potions left!");
                 }
-                return new Pokemon[] {playerPokemon, computerPokemon};
+
+                return new Pokemon[] {playerPokemon, computerPokemon}; // Skip player's action
             case 5:
                 Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
                 if (newPokemon != computerPokemon) {
@@ -179,7 +177,6 @@ class Battle {
             System.out.println(computerPokemon.getName() + " dealt " + computerDamage + " damage to " + playerPokemon.getName() + "!");
             printEffectiveness(effectiveness);
         }
-
         return new Pokemon[] {playerPokemon, computerPokemon};
     }
 
