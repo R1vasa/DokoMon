@@ -7,9 +7,13 @@ class Battle {
 
         // Show computer's Pokémon before the battle starts
         showComputerPokemons(computer);
-        
+
+        Map<String, Integer> playerItemUsage = new HashMap<>();
+        playerItemUsage.put("Potion", 0);
+        playerItemUsage.put("Elixir", 0);
+
         Pokemon computerPokemon = computer.chooseRandomPokemon();
-        
+
         while (player.hasAvailablePokemon() && computer.hasAvailablePokemon()) {
             Pokemon playerPokemon = player.choosePokemon(sc);
             while (playerPokemon.isFainted()) {
@@ -19,10 +23,10 @@ class Battle {
             while (computerPokemon == null || computerPokemon.isFainted()) {
                 computerPokemon = computer.chooseRandomPokemon();
             }
-    
+
             System.out.println("\n-- " + playerPokemon.getName() + " VS " + computerPokemon.getName() + " --");
 
-            Pokemon[] updated = battleTurnPvE(player, playerPokemon, computer, computerPokemon, sc);
+            Pokemon[] updated = battleTurnPvE(player, playerPokemon, computer, computerPokemon, sc, playerItemUsage);
             playerPokemon = updated[0];
             computerPokemon = updated[1];
         }
@@ -41,9 +45,8 @@ class Battle {
         }
     }
 
-    private static Pokemon[] battleTurnPvE(Trainer player, Pokemon playerPokemon, Trainer computer, Pokemon computerPokemon, Scanner sc) {
+    private static Pokemon[] battleTurnPvE(Trainer player, Pokemon playerPokemon, Trainer computer, Pokemon computerPokemon, Scanner sc, Map<String, Integer> playerItemUsage) {
         while (!playerPokemon.isFainted() && !computerPokemon.isFainted()) {
-            // Player chooses action
             System.out.println("\nChoose action for " + playerPokemon.getName() + ":");
             System.out.println("1. Regular Attack");
             System.out.println("2. Special Attack");
@@ -55,107 +58,103 @@ class Battle {
             sc.nextLine(); 
             System.out.println("Player action chosen: " + playerAction);
 
-            // Computer chooses action
             System.out.println("\nTrainer Rivasa is choosing an action for " + computerPokemon.getName() + "...");
-            int computerAction = new Random().nextInt(5) + 1; // Randomly choose an action (1-5)
+            int computerAction = new Random().nextInt(5) + 1;
             System.out.println("Computer action chosen: " + computerAction);
 
-            // Process actions
-            Pokemon[] updatedPokemons = processActions(playerAction, playerPokemon, computerAction, computerPokemon, player, computer, sc);
+            Pokemon[] updatedPokemons = processActions(playerAction, playerPokemon, computerAction, computerPokemon, player, computer, sc, playerItemUsage);
             playerPokemon = updatedPokemons[0];
             computerPokemon = updatedPokemons[1];
 
-
-            // Display status after both actions
             System.out.println("\n[Status] " + playerPokemon.getName() + " HP: " + playerPokemon.getHp() + " | " + computerPokemon.getName() + " HP: " + computerPokemon.getHp());
         }
         return new Pokemon[] {playerPokemon, computerPokemon};
     }
 
-    private static Pokemon[] processActions(int playerAction, Pokemon playerPokemon, int computerAction, Pokemon computerPokemon, Trainer player, Trainer computer, Scanner sc) {
+    private static Pokemon[] processActions(int playerAction, Pokemon playerPokemon, int computerAction, Pokemon computerPokemon, Trainer player, Trainer computer, Scanner sc, Map<String, Integer> playerItemUsage) {
         boolean playerGuarded = false;
         boolean computerGuarded = false;
 
-        // Process player's action
         switch (playerAction) {
-            case 1: // Regular Attack
+            case 1:
                 System.out.println(playerPokemon.getName() + " uses Regular Attack!");
                 break;
-
-            case 2: // Special Attack
+            case 2:
                 System.out.println(playerPokemon.getName() + " uses Special Attack!");
                 break;
-
-            case 3: // Guard
+            case 3:
                 System.out.println(playerPokemon.getName() + " is guarding!");
                 playerGuarded = true;
                 break;
-
-            case 4: // Use Item
+            case 4:
                 System.out.println("Choose an item to use:");
                 System.out.println("1. Potion (+30 HP)");
                 System.out.println("2. Elixir (+10 Levels)");
                 int itemChoice = sc.nextInt();
-                sc.nextLine(); // Consume newline
+                sc.nextLine();
                 if (itemChoice == 1) {
-                    playerPokemon.heal(30);
-                    System.out.println(playerPokemon.getName() + " healed 30 HP!");
+                    if (playerItemUsage.get("Potion") >= 2) {
+                        System.out.println("You have no more Potions left!");
+                    } else {
+                        playerPokemon.heal(30);
+                        playerItemUsage.put("Potion", playerItemUsage.get("Potion") + 1);
+                        System.out.println(playerPokemon.getName() + " healed 30 HP! (Used " + playerItemUsage.get("Potion") + "/2 Potions)");
+                    }
                 } else if (itemChoice == 2) {
-                    playerPokemon.levelUp(10);
-                    System.out.println(playerPokemon.getName() + " leveled up by 10!");
+                    if (playerItemUsage.get("Elixir") >= 2) {
+                        System.out.println("You have no more Elixirs left!");
+                    } else {
+                        playerPokemon.levelUp(10);
+                        playerItemUsage.put("Elixir", playerItemUsage.get("Elixir") + 1);
+                        System.out.println(playerPokemon.getName() + " leveled up by 10! (Used " + playerItemUsage.get("Elixir") + "/2 Elixirs)");
+                    }
                 }
-                 return new Pokemon[] {playerPokemon, computerPokemon};// Skip computer's action
-
-            case 5: // Change Pokémon
+                return new Pokemon[] {playerPokemon, computerPokemon};
+            case 5:
                 playerPokemon = player.choosePokemon(sc);
                 while (playerPokemon.isFainted()) {
                     System.out.println(playerPokemon.getName() + " has fainted. Choose another Pokémon.");
                     playerPokemon = player.choosePokemon(sc);
                 }
                 System.out.println(playerPokemon.getName() + " is now in battle!");
-               return new Pokemon[] {playerPokemon, computerPokemon};
+                return new Pokemon[] {playerPokemon, computerPokemon};
             default:
                 System.out.println("Invalid action.");
                 return new Pokemon[] {playerPokemon, computerPokemon};
         }
 
-        // Process computer's action
         switch (computerAction) {
-            case 1: // Regular Attack
+            case 1:
                 System.out.println(computerPokemon.getName() + " uses Regular Attack!");
                 break;
-
-            case 2: // Special Attack
+            case 2:
                 System.out.println(computerPokemon.getName() + " uses Special Attack!");
                 break;
-
-            case 3: // Guard
+            case 3:
                 System.out.println(computerPokemon.getName() + " is guarding!");
                 computerGuarded = true;
                 break;
-
-            case 4: // Use Item
+            case 4:
                 System.out.println(computerPokemon.getName() + " uses an item!");
                 computerPokemon.heal(30);
                 System.out.println(computerPokemon.getName() + " healed 30 HP!");
-                return new Pokemon[] {playerPokemon, computerPokemon}; // Skip player's action
-            case 5: // Change Pokémon
-                 Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
+                return new Pokemon[] {playerPokemon, computerPokemon};
+            case 5:
+                Pokemon newPokemon = computer.chooseRandomPokemonExcluding(computerPokemon);
                 if (newPokemon != computerPokemon) {
-                computerPokemon = newPokemon;
-                System.out.println("Trainer Rivasa sends out " + computerPokemon.getName() + "!");
+                    computerPokemon = newPokemon;
+                    System.out.println("Trainer Rivasa sends out " + computerPokemon.getName() + "!");
                 } else {
-                System.out.println("Trainer Rivasa tried to switch Pokémon, but no other options available!");
+                    System.out.println("Trainer Rivasa tried to switch Pokémon, but no other options available!");
                 }
-                return new Pokemon[] {playerPokemon, computerPokemon}; // Skip player's action
+                return new Pokemon[] {playerPokemon, computerPokemon};
             default:
                 System.out.println("Trainer Rivasa made an invalid choice.");
                 return new Pokemon[] {playerPokemon, computerPokemon};
         }
 
-        // Calculate damage and effectiveness
         if (!playerGuarded) {
-            int playerDamage = playerAction == 2 ? 10 : 5; // Example damage calculation
+            int playerDamage = playerAction == 2 ? 10 : 5;
             double effectiveness = TypeChart.getEffectiveness(playerPokemon.getType(), computerPokemon.getType());
             playerDamage *= effectiveness;
             computerPokemon.setHp(computerPokemon.getHp() - playerDamage);
@@ -164,14 +163,15 @@ class Battle {
         }
 
         if (!computerGuarded) {
-            int computerDamage = computerAction == 2 ? 10 : 5; // Example damage calculation
+            int computerDamage = computerAction == 2 ? 10 : 5;
             double effectiveness = TypeChart.getEffectiveness(computerPokemon.getType(), playerPokemon.getType());
             computerDamage *= effectiveness;
             playerPokemon.setHp(playerPokemon.getHp() - computerDamage);
             System.out.println(computerPokemon.getName() + " dealt " + computerDamage + " damage to " + playerPokemon.getName() + "!");
             printEffectiveness(effectiveness);
         }
-         return new Pokemon[] {playerPokemon, computerPokemon};
+
+        return new Pokemon[] {playerPokemon, computerPokemon};
     }
 
     private static void printEffectiveness(double effectiveness) {
